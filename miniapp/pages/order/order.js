@@ -1,5 +1,22 @@
 const { API_BASE_URL } = require("../../config.js");
 
+const STATUS_TEXT = {
+  PENDING_CONFIRMATION: "待确认",
+  WAITING_PROVIDER: "等待服务者接单",
+  ACCEPTED: "服务者已接单",
+  ARRIVED: "服务者已到达",
+  IN_SERVICE: "服务进行中",
+  COMPLETED: "服务已完成",
+  USER_ACCEPTED: "用户已确认完成",
+  CANCELLED: "已取消",
+  DISPUTED: "售后处理中",
+  NO_ORDER: "暂无订单"
+};
+
+function getStatusText(status) {
+  return STATUS_TEXT[status] || status || "待确认";
+}
+
 Page({
   data: {
     order: {
@@ -59,7 +76,7 @@ Page({
     const order = {
       id: savedOrder.id || "",
       status: savedOrder.status || "PENDING_CONFIRMATION",
-      statusText: savedOrder.statusText || savedOrder.status || "待确认",
+      statusText: getStatusText(savedOrder.status),
       provider: {
         name: provider.name || "待确认",
         credit: provider.credit || 0,
@@ -92,7 +109,7 @@ Page({
         if (res.statusCode === 200 && res.data && res.data.order) {
           getApp().globalData.currentOrder = res.data.order;
           this.setData({
-            order: res.data.order,
+            order: { ...res.data.order, statusText: getStatusText(res.data.order.status) },
             history: res.data.history || []
           });
         }
@@ -130,7 +147,7 @@ Page({
       const order = {
         id: current.id,
         status: next,
-        statusText: next,
+        statusText: getStatusText(next),
         provider: current.provider,
         request: current.request,
         amount: current.amount || 0,
