@@ -16,6 +16,14 @@ const STATUS_TEXT = {
 function getStatusText(status) {
   return STATUS_TEXT[status] || status || "待确认";
 }
+\nfunction formatTime(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  const pad = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+
 
 Page({
   data: {
@@ -110,7 +118,7 @@ Page({
           getApp().globalData.currentOrder = res.data.order;
           this.setData({
             order: { ...res.data.order, statusText: getStatusText(res.data.order.status) },
-            history: res.data.history || []
+            history: (res.data.history || []).map(item => ({...item, statusText: getStatusText(item.to || item.status), timeText: formatTime(item.createdAt)}))
           });
         }
       },
@@ -159,9 +167,11 @@ Page({
         id: "demo-" + Date.now(),
         from: currentStatus,
         to: next,
+        statusText: getStatusText(next),
         actorType: "demo",
         actorId: "demo-user",
-        createdAt: now
+        createdAt: now,
+        timeText: formatTime(now)
       }]);
 
       getApp().globalData.currentOrder = order;
