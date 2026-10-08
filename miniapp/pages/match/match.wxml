@@ -1,1 +1,41 @@
-<view class="container"><view class="title">我们理解的是</view><view class="card summary"><view class="summary-label">你的需求</view><view class="summary-text">{{draft.rawText}}</view><view class="tags"><view class="tag">{{draft.category}}</view><view class="tag">附近服务</view><view class="tag">标准化履约</view></view></view><view class="match-tip">正在根据需求、距离、服务能力和信用进行匹配…</view><view wx:for="{{providers}}" wx:key="id" class="card provider"><view class="provider-top"><view><view class="provider-name">{{item.name}}</view><view class="provider-meta">距你 {{item.distance}} · {{item.orders}} 单完成</view></view><view class="credit">{{item.credit}}分</view></view><view class="provider-skill">{{item.skill}}</view><view class="provider-price">参考 ¥{{item.price}} 起</view></view><button class="primary-btn" bindtap="createOrder">选择推荐服务</button></view>
+<view class="container">
+  <view class="title">我们理解的是</view>
+  <view class="card summary">
+    <view class="summary-label">你的需求</view>
+    <view class="summary-text">{{draft.rawText}}</view>
+    <view class="tags">
+      <view class="tag">{{draft.category}}</view>
+      <view class="tag">{{draft.parsed.riskLevel}}</view>
+      <view class="tag">{{draft.source}}</view>
+    </view>
+  </view>
+
+  <view class="card details">
+    <view class="detail-row"><text>时间</text><text>{{draft.parsed.dateText}} {{draft.parsed.timeText}}</text></view>
+    <view class="detail-row"><text>地点</text><text>{{draft.parsed.locationText}}</text></view>
+    <view class="detail-row"><text>时长</text><text>{{draft.parsed.durationMinutes}} 分钟</text></view>
+    <view class="detail-row"><text>数量</text><text>{{draft.parsed.quantity || "待确认"}}</text></view>
+  </view>
+
+  <view wx:if="{{draft.parsed.needsHumanReview}}" class="card warning">
+    <view class="warning-title">需要人工确认</view>
+    <view class="warning-text">这个需求涉及平台需要谨慎处理的服务，暂不自动派单。</view>
+  </view>
+
+  <view wx:else class="match-tip">正在根据需求、距离、服务能力和信用进行匹配…</view>
+
+  <view wx:for="{{providers}}" wx:key="id" class="card provider">
+    <view class="provider-top">
+      <view>
+        <view class="provider-name">{{item.name}}</view>
+        <view class="provider-meta">距你 {{item.distance}} · {{item.orders}} 单完成</view>
+      </view>
+      <view class="credit">{{item.credit}}分</view>
+    </view>
+    <view class="provider-skill">{{item.skill}}</view>
+    <view class="provider-price">参考 ¥{{item.price}} 起</view>
+  </view>
+
+  <button wx:if="{{providers.length}}" class="primary-btn" bindtap="createOrder">选择推荐服务</button>
+  <button wx:else class="primary-btn" disabled>等待平台人工确认</button>
+</view>
