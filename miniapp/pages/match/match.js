@@ -24,8 +24,19 @@ Page({
     if(!this.data.providers.length||this.data.loading)return;
     const provider=this.data.providers[0],app=getApp();
     if(!API_BASE_URL){
-      const order={id:"LZ"+Date.now().toString().slice(-8),status:"待确认",provider,request:this.data.draft};
-      app.globalData.currentOrder=order;wx.navigateTo({url:"/pages/order/order"});return;
+      const order={
+        id:"LZ"+Date.now().toString().slice(-8),
+        status:"PENDING_CONFIRMATION",
+        statusText:"待确认",
+        provider,
+        request:this.data.draft,
+        amount:Number(provider.priceFrom||0),
+        createdAt:new Date().toISOString(),
+        updatedAt:new Date().toISOString()
+      };
+      app.globalData.currentOrder=order;
+      wx.navigateTo({url:"/pages/order/order"});
+      return;
     }
     wx.showLoading({title:"创建订单"});
     wx.request({url:API_BASE_URL+"/api/auth/dev-login",method:"POST",header:{"content-type":"application/json"},data:{name:"体验用户"},
@@ -36,9 +47,9 @@ Page({
           data:{userId,providerId:provider.id,rawText:this.data.draft.rawText,request:this.data.draft.parsed,amount:provider.priceFrom},
           success:res=>{wx.hideLoading();if(res.statusCode===201&&res.data?.order){app.globalData.currentOrder=res.data.order;wx.navigateTo({url:"/pages/order/order"});}else this.failOrder(res.data?.error);},
           fail:()=>this.failOrder("网络连接失败")
-        });
+        );
       },fail:()=>this.failOrder("登录失败")
-    });
+    );
   },
   failOrder(message){wx.hideLoading();wx.showToast({title:message||"订单创建失败",icon:"none"});}
 });
