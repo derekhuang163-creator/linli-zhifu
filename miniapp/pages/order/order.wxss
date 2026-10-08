@@ -1,1 +1,12 @@
 .order-id{color:#6b7280;font-size:23rpx}.order-status{font-size:34rpx;font-weight:700;margin-top:12rpx}.request{font-size:29rpx;line-height:1.6;padding-bottom:24rpx}.row{display:flex;justify-content:space-between;padding:20rpx 0;border-top:1rpx solid #f0f1f3;font-size:26rpx}.notice{color:#6b7280;font-size:24rpx;line-height:1.6}
+.timeline-card{padding-bottom:28rpx}
+.timeline{padding-top:8rpx}
+.timeline-item{position:relative;display:flex;min-height:92rpx;padding-left:46rpx}
+.timeline-line{position:absolute;left:13rpx;top:24rpx;bottom:-8rpx;width:2rpx;background:#e5e7eb}
+.timeline-item:last-child .timeline-line{display:none}
+.timeline-dot{position:absolute;left:5rpx;top:13rpx;width:18rpx;height:18rpx;border-radius:50%;background:#d1d5db;border:5rpx solid #f3f4f6}
+.timeline-item.active .timeline-dot{background:#111827;border-color:#e5e7eb}
+.timeline-content{padding:0 0 26rpx}
+.timeline-status{font-size:28rpx;font-weight:600;line-height:1.4}
+.timeline-time{margin-top:8rpx;color:#9ca3af;font-size:22rpx}
+.timeline-empty{padding:18rpx 0;color:#9ca3af;font-size:24rpx}
