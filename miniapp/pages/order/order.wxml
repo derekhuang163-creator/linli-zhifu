@@ -28,11 +28,18 @@
       </view>
     </view>
 
-    <view class="card" wx:if="{{history.length}}">
+    <view class="card timeline-card">
       <view class="section-title">履约状态</view>
-      <view wx:for="{{history}}" wx:key="id" class="row">
-        <text>{{item.to}}</text>
-        <text>{{item.createdAt}}</text>
+      <view class="timeline">
+        <view wx:for="{{history}}" wx:key="id" class="timeline-item {{index === history.length - 1 ? 'active' : ''}}">
+          <view class="timeline-line"></view>
+          <view class="timeline-dot"></view>
+          <view class="timeline-content">
+            <view class="timeline-status">{{item.statusText || item.to}}</view>
+            <view class="timeline-time">{{item.timeText || item.createdAt}}</view>
+          </view>
+        </view>
+        <view wx:if="{{!history.length}}" class="timeline-empty">订单创建后，服务履约进度会显示在这里</view>
       </view>
     </view>
 
