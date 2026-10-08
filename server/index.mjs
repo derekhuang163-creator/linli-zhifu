@@ -7,7 +7,7 @@ import {createUser,registerProvider,listProviders,getProvider,createOrder,getOrd
 
 const app=express(),port=Number(process.env.PORT||3000);
 const openai=process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY}):null;
-app.use(cors());app.use(express.json({limit:"64kb"}));
+app.use(cors());app.use(express.json({limit:"64kb"}));\napp.use("/admin",express.static(path.resolve("admin")));
 app.get("/health",(_req,res)=>res.json({ok:true,service:"linli-zhifu-server",aiEnabled:Boolean(openai),time:new Date().toISOString()}));
 const schema={type:"object",additionalProperties:false,properties:{summary:{type:"string"},category:{type:"string",enum:["家庭清洁","家电清洗","搬运/安装","跑腿代办","收纳整理","宠物服务","老人生活陪伴","其他生活服务"]},riskLevel:{type:"string",enum:["L1","L2","L3","L4"]},dateText:{type:"string"},timeText:{type:"string"},durationMinutes:{type:"integer"},locationText:{type:"string"},quantity:{type:"integer"},preferences:{type:"string"},specialNotes:{type:"array",items:{type:"string"}},needsHumanReview:{type:"boolean"}},required:["summary","category","riskLevel","dateText","timeText","durationMinutes","locationText","quantity","preferences","specialNotes","needsHumanReview"]};
 
