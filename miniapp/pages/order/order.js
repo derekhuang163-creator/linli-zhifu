@@ -1,1 +1,19 @@
-Page({data:{order:{}},onShow(){const app=getApp();this.setData({order:app.globalData.currentOrder||{}})},backHome(){wx.reLaunch({url:"/pages/index/index"})}})
+const {API_BASE_URL}=require("../../config.js");
+
+Page({
+  data:{order:{},history:[],loading:false},
+  onShow(){const app=getApp();const order=app.globalData.currentOrder||{};this.setData({order});if(API_BASE_URL&&order.id)this.refresh(order.id);},
+  refresh(id){
+    wx.request({url:API_BASE_URL+"/api/orders/"+id,success:res=>{if(res.statusCode===200)this.setData({order:res.data.order,history:res.data.history||[]});}});
+  },
+  nextStatus(){
+    const map={WAITING_PROVIDER:"ACCEPTED",ACCEPTED:"ARRIVED",ARRIVED:"IN_SERVICE",IN_SERVICE:"COMPLETED",COMPLETED:"USER_ACCEPTED"};
+    const next=map[this.data.order.status];if(!next||!API_BASE_URL)return;
+    this.setData({loading:true});
+    wx.request({url:API_BASE_URL+"/api/orders/"+this.data.order.id+"/status",method:"POST",header:{"content-type":"application/json"},data:{status:next,actorType:"demo",actorId:"demo-user"},
+      success:res=>{this.setData({loading:false});if(res.statusCode===200)this.setData({order:res.data.order,history:res.data.history||[]});else wx.showToast({title:res.data?.error||"状态更新失败",icon:"none"});},
+      fail:()=>{this.setData({loading:false});wx.showToast({title:"网络连接失败",icon:"none"});}
+    });
+  },
+  backHome(){wx.reLaunch({url:"/pages/index/index"});}
+});
