@@ -1,0 +1,18 @@
+<view class="container">
+  <view class="title">服务者工作台</view>
+  <view class="card">
+    <view class="label">当前服务者</view>
+    <view class="name">{{provider.name}}</view>
+    <view class="meta">信用分 {{provider.credit}} · 已完成 {{provider.completedOrders}} 单</view>
+    <view class="meta">状态：{{provider.status}}</view>
+  </view>
+  <view class="section-title">我的订单</view>
+  <view wx:if="{{!orders.length}}" class="card muted">目前还没有订单。</view>
+  <view wx:for="{{orders}}" wx:key="id" class="card order">
+    <view class="order-id">{{item.id}}</view>
+    <view class="request">{{item.rawText}}</view>
+    <view class="status">{{item.status}}</view>
+    <button wx:if="{{item.status === 'WAITING_PROVIDER'}}" size="mini" bindtap="accept" data-id="{{item.id}}">接单</button>
+  </view>
+  <button class="primary-btn" bindtap="demoRefresh">刷新订单</button>
+</view>
