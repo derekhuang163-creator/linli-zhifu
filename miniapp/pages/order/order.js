@@ -16,33 +16,74 @@ const STATUS_TEXT = {
 function getStatusText(status) {
   return STATUS_TEXT[status] || status || "待确认";
 }
-\nfunction formatTime(value) {
+
+function formatTime(value) {
   if (!value) return "";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   const pad = (n) => String(n).padStart(2, "0");
-  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  return d.getFullYear() + "-" +
+    pad(d.getMonth() + 1) + "-" +
+    pad(d.getDate()) + " " +
+    pad(d.getHours()) + ":" +
+    pad(d.getMinutes());
 }
 
+function normalizeHistory(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map((item, index) => ({
+    ...item,
+    id: item.id || ("history-" + index),
+    statusText: getStatusText(item.to || item.status),
+    timeText: formatTime(item.createdAt)
+  }));
+}
+
+function normalizeOrder(savedOrder) {
+  const source = savedOrder || {};
+  const provider = source.provider || {};
+  const request = source.request || {};
+
+  return {
+    id: source.id || "",
+    status: source.status || "PENDING_CONFIRMATION",
+    statusText: getStatusText(source.status),
+    provider: {
+      name: provider.name || "待确认",
+      credit: Number(provider.credit || 0),
+      priceFrom: Number(provider.priceFrom || provider.price || 0)
+    },
+    request: {
+      rawText: request.rawText || source.rawText || "未填写服务需求"
+    },
+    amount: Number(source.amount || 0),
+    createdAt: source.createdAt || "",
+    updatedAt: source.updatedAt || ""
+  };
+}
 
 Page({
   data: {
     order: {
       id: "",
-      status: "PENDING_CONFIRMATION",
-      statusText: "待确认",
+      status: "NO_ORDER",
+      statusText: "暂无订单",
       provider: {
-        name: "待匹配",
+        name: "暂无服务者",
         credit: 0,
         priceFrom: 0
       },
       request: {
         rawText: ""
-      }
+      },
+      amount: 0,
+      createdAt: "",
+      updatedAt: ""
     },
     history: [],
     loading: false,
-    pageReady: false
+    pageReady: false,
+    errorText: ""
   },
 
   onLoad() {
@@ -50,7 +91,9 @@ Page({
   },
 
   onShow() {
-    this.loadCurrentOrder();
+    if (!this.data.pageReady) {
+      this.loadCurrentOrder();
+    }
   },
 
   loadCurrentOrder() {
@@ -60,6 +103,7 @@ Page({
     if (!savedOrder) {
       this.setData({
         pageReady: true,
+        errorText: "",
         order: {
           id: "",
           status: "NO_ORDER",
@@ -71,36 +115,22 @@ Page({
           },
           request: {
             rawText: "当前没有可显示的订单"
-          }
+          },
+          amount: 0,
+          createdAt: "",
+          updatedAt: ""
         },
         history: []
       });
       return;
     }
 
-    const provider = savedOrder.provider || {};
-    const request = savedOrder.request || {};
-
-    const order = {
-      id: savedOrder.id || "",
-      status: savedOrder.status || "PENDING_CONFIRMATION",
-      statusText: getStatusText(savedOrder.status),
-      provider: {
-        name: provider.name || "待确认",
-        credit: provider.credit || 0,
-        priceFrom: provider.priceFrom || provider.price || 0
-      },
-      request: {
-        rawText: request.rawText || "未填写服务需求"
-      },
-      amount: savedOrder.amount || 0,
-      createdAt: savedOrder.createdAt || "",
-      updatedAt: savedOrder.updatedAt || ""
-    };
+    const order = normalizeOrder(savedOrder);
 
     this.setData({
-      order: order,
+      order,
       pageReady: true,
+      errorText: "",
       history: []
     });
 
@@ -111,19 +141,34 @@ Page({
 
   refresh(id) {
     wx.request({
-      url: API_BASE_URL + "/api/orders/" + id,
+      url: API_BASE_URL + "/api/orders/" + encodeURIComponent(id),
       method: "GET",
+      timeout: 10000,
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.order) {
+          const order = normalizeOrder(res.data.order);
+          const history = normalizeHistory(res.data.history);
+
           getApp().globalData.currentOrder = res.data.order;
+
           this.setData({
-            order: { ...res.data.order, statusText: getStatusText(res.data.order.status) },
-            history: (res.data.history || []).map(item => ({...item, statusText: getStatusText(item.to || item.status), timeText: formatTime(item.createdAt)}))
+            order,
+            history,
+            errorText: ""
           });
+          return;
         }
+
+        console.error("load order failed:", res.statusCode, res.data);
+        this.setData({
+          errorText: "订单详情暂时无法更新，当前仍显示本地订单信息。"
+        });
       },
       fail: (err) => {
-        console.error("load order failed", err);
+        console.error("load order request failed:", err);
+        this.setData({
+          errorText: "订单网络更新失败，当前仍显示本地订单信息。"
+        });
       }
     });
   },
@@ -131,7 +176,7 @@ Page({
   nextStatus() {
     const currentStatus = this.data.order.status;
 
-    const map = {
+    const nextMap = {
       PENDING_CONFIRMATION: "WAITING_PROVIDER",
       WAITING_PROVIDER: "ACCEPTED",
       ACCEPTED: "ARRIVED",
@@ -140,20 +185,16 @@ Page({
       COMPLETED: "USER_ACCEPTED"
     };
 
-    const next = map[currentStatus];
-    if (!next) {
-      return;
-    }
+    const next = nextMap[currentStatus];
+    if (!next || this.data.loading) return;
 
-    this.setData({
-      loading: true
-    });
+    this.setData({ loading: true });
 
     if (!API_BASE_URL) {
       const now = new Date().toISOString();
       const current = this.data.order;
       const order = {
-        id: current.id,
+        id: current.id || ("LZ" + Date.now().toString().slice(-8)),
         status: next,
         statusText: getStatusText(next),
         provider: current.provider,
@@ -177,16 +218,20 @@ Page({
       getApp().globalData.currentOrder = order;
 
       this.setData({
-        order: order,
-        history: history,
-        loading: false
+        order,
+        history,
+        loading: false,
+        errorText: ""
       });
       return;
     }
 
+    const orderId = this.data.order.id;
+
     wx.request({
-      url: API_BASE_URL + "/api/orders/" + current.id + "/status",
+      url: API_BASE_URL + "/api/orders/" + encodeURIComponent(orderId) + "/status",
       method: "POST",
+      timeout: 10000,
       header: {
         "content-type": "application/json"
       },
@@ -196,27 +241,30 @@ Page({
         actorId: "demo-user"
       },
       success: (res) => {
-        this.setData({
-          loading: false
-        });
-
         if (res.statusCode === 200 && res.data && res.data.order) {
+          const order = normalizeOrder(res.data.order);
+          const history = normalizeHistory(res.data.history);
+
           getApp().globalData.currentOrder = res.data.order;
+
           this.setData({
-            order: res.data.order,
-            history: res.data.history || []
+            order,
+            history,
+            loading: false,
+            errorText: ""
           });
-        } else {
-          wx.showToast({
-            title: (res.data && res.data.error) || "状态更新失败",
-            icon: "none"
-          });
+          return;
         }
-      },
-      fail: () => {
-        this.setData({
-          loading: false
+
+        this.setData({ loading: false });
+        wx.showToast({
+          title: (res.data && res.data.error) || "状态更新失败",
+          icon: "none"
         });
+      },
+      fail: (err) => {
+        console.error("update order status failed:", err);
+        this.setData({ loading: false });
         wx.showToast({
           title: "网络连接失败",
           icon: "none"
