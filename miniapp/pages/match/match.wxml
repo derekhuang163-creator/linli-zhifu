@@ -28,12 +28,12 @@
     <view class="provider-top">
       <view>
         <view class="provider-name">{{item.name}}</view>
-        <view class="provider-meta">距你 {{item.distance}} · {{item.orders}} 单完成</view>
+        <view class="provider-meta">距你 {{item.distance || "附近"}} · {{item.completedOrders || item.orders || 0}} 单完成</view>
       </view>
       <view class="credit">{{item.credit}}分</view>
     </view>
-    <view class="provider-skill">{{item.skill}}</view>
-    <view class="provider-price">参考 ¥{{item.price}} 起</view>
+    <view class="provider-skill">{{item.skills || item.skill}}</view>
+    <view class="provider-price">参考 ¥{{item.priceFrom || item.price || 0}} 起</view>
   </view>
 
   <button wx:if="{{providers.length}}" class="primary-btn" bindtap="createOrder">选择推荐服务</button>
