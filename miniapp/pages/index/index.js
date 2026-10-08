@@ -1,0 +1,1 @@
+Page({startRequest(){wx.navigateTo({url:"/pages/request/request"})},quickRequest(e){wx.navigateTo({url:"/pages/request/request?type="+encodeURIComponent(e.currentTarget.dataset.type)})}})

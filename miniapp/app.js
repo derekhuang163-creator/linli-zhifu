@@ -1,0 +1,1 @@
+App({globalData:{appName:"邻里智服",demoMode:true,requestDraft:null,currentOrder:null}})

@@ -1,0 +1,1 @@
+.hint{color:#6b7280;font-size:27rpx;margin:18rpx 0 30rpx;line-height:1.6}.textarea{width:100%;min-height:280rpx;font-size:30rpx;line-height:1.7}.counter{text-align:right;color:#9ca3af;font-size:22rpx;margin-top:12rpx}.chips{display:flex;flex-wrap:wrap;gap:16rpx;margin-bottom:42rpx}.chip{background:#fff;border-radius:999rpx;padding:16rpx 22rpx;color:#4b5563;font-size:24rpx}

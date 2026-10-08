@@ -1,0 +1,1 @@
+.order-id{color:#6b7280;font-size:23rpx}.order-status{font-size:34rpx;font-weight:700;margin-top:12rpx}.request{font-size:29rpx;line-height:1.6;padding-bottom:24rpx}.row{display:flex;justify-content:space-between;padding:20rpx 0;border-top:1rpx solid #f0f1f3;font-size:26rpx}.notice{color:#6b7280;font-size:24rpx;line-height:1.6}

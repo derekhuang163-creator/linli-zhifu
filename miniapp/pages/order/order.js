@@ -1,0 +1,1 @@
+Page({data:{order:{}},onShow(){const app=getApp();this.setData({order:app.globalData.currentOrder||{}})},backHome(){wx.reLaunch({url:"/pages/index/index"})}})
