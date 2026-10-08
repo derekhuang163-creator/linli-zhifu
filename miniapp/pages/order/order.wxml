@@ -1,1 +1,32 @@
-<view class="container"><view class="title">订单已生成</view><view class="card"><view class="order-id">订单号 {{order.id}}</view><view class="order-status">{{order.status}}</view></view><view class="card"><view class="section-title">服务内容</view><view class="request">{{order.request.rawText}}</view><view class="row"><text>服务者</text><text>{{order.provider.name}}</text></view><view class="row"><text>信用分</text><text>{{order.provider.credit}}</text></view><view class="row"><text>参考价格</text><text>¥{{order.provider.price}} 起</text></view></view><view class="card notice">当前为 MVP 演示订单。正式版本将在这里接入支付、服务时间、定位、履约状态和售后。</view><button class="primary-btn" bindtap="backHome">返回首页</button></view>
+<view class="container">
+  <view class="title">订单已生成</view>
+  <view class="card">
+    <view class="order-id">订单号 {{order.id}}</view>
+    <view class="order-status">{{order.status}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">服务内容</view>
+    <view class="request">{{order.request.rawText}}</view>
+    <view class="row"><text>服务者</text><text>{{order.provider.name}}</text></view>
+    <view class="row"><text>信用分</text><text>{{order.provider.credit}}</text></view>
+    <view class="row"><text>参考价格</text><text>¥{{order.provider.priceFrom || order.provider.price || 0}} 起</text></view>
+  </view>
+
+  <view class="card" wx:if="{{history.length}}">
+    <view class="section-title">履约状态</view>
+    <view wx:for="{{history}}" wx:key="id" class="row">
+      <text>{{item.to}}</text>
+      <text>{{item.createdAt}}</text>
+    </view>
+  </view>
+
+  <view class="card notice">
+    当前为 MVP 演示订单。下一步将接入真实支付、服务时间、定位、履约状态和售后。
+  </view>
+
+  <button wx:if="{{order.status !== 'USER_ACCEPTED' && order.status !== 'CANCELLED' && order.status !== 'DISPUTED'}}" class="primary-btn" bindtap="nextStatus" disabled="{{loading}}">
+    {{loading ? "处理中…" : "推进下一步状态（测试）"}}
+  </button>
+  <button class="primary-btn" bindtap="backHome">返回首页</button>
+</view>
