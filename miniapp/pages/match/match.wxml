@@ -1,41 +1,72 @@
 <view class="container">
-  <view class="title">我们理解的是</view>
-  <view class="card summary">
-    <view class="summary-label">你的需求</view>
-    <view class="summary-text">{{draft.rawText}}</view>
-    <view class="tags">
-      <view class="tag">{{draft.category}}</view>
-      <view class="tag">{{draft.parsed.riskLevel}}</view>
-      <view class="tag">{{draft.source}}</view>
-    </view>
+  <view class="title">为你匹配服务</view>
+
+  <view wx:if="{{!pageReady}}" class="card">
+    <view class="match-tip">正在打开匹配服务…</view>
   </view>
 
-  <view class="card details">
-    <view class="detail-row"><text>时间</text><text>{{draft.parsed.dateText}} {{draft.parsed.timeText}}</text></view>
-    <view class="detail-row"><text>地点</text><text>{{draft.parsed.locationText}}</text></view>
-    <view class="detail-row"><text>时长</text><text>{{draft.parsed.durationMinutes}} 分钟</text></view>
-    <view class="detail-row"><text>数量</text><text>{{draft.parsed.quantity || "待确认"}}</text></view>
-  </view>
-
-  <view wx:if="{{draft.parsed.needsHumanReview}}" class="card warning">
-    <view class="warning-title">需要人工确认</view>
-    <view class="warning-text">这个需求涉及平台需要谨慎处理的服务，暂不自动派单。</view>
-  </view>
-
-  <view wx:else class="match-tip">正在根据需求、距离、服务能力和信用进行匹配…</view>
-
-  <view wx:for="{{providers}}" wx:key="id" class="card provider">
-    <view class="provider-top">
-      <view>
-        <view class="provider-name">{{item.name}}</view>
-        <view class="provider-meta">距你 {{item.distance || "附近"}} · {{item.completedOrders || item.orders || 0}} 单完成</view>
+  <block wx:else>
+    <view class="card summary">
+      <view class="summary-label">我们理解的是</view>
+      <view class="summary-text">{{draft.rawText}}</view>
+      <view class="tags">
+        <view class="tag">{{draft.category}}</view>
+        <view class="tag">{{draft.parsed.riskLevel}}</view>
+        <view class="tag">{{draft.source}}</view>
       </view>
-      <view class="credit">{{item.credit}}分</view>
     </view>
-    <view class="provider-skill">{{item.skills || item.skill}}</view>
-    <view class="provider-price">参考 ¥{{item.priceFrom || item.price || 0}} 起</view>
-  </view>
 
-  <button wx:if="{{providers.length}}" class="primary-btn" bindtap="createOrder">选择推荐服务</button>
-  <button wx:else class="primary-btn" disabled>等待平台人工确认</button>
+    <view class="card details">
+      <view class="detail-row">
+        <text>时间</text>
+        <text>{{draft.parsed.dateText}} {{draft.parsed.timeText}}</text>
+      </view>
+      <view class="detail-row">
+        <text>地点</text>
+        <text>{{draft.parsed.locationText}}</text>
+      </view>
+      <view class="detail-row">
+        <text>时长</text>
+        <text>{{draft.parsed.durationMinutes}} 分钟</text>
+      </view>
+      <view class="detail-row">
+        <text>数量</text>
+        <text>{{draft.parsed.quantity || "待确认"}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{draft.parsed.needsHumanReview}}" class="card warning">
+      <view class="warning-title">需要人工确认</view>
+      <view class="warning-text">这个需求涉及平台需要谨慎处理的服务，暂不自动派单。</view>
+    </view>
+
+    <view wx:elif="{{loading}}" class="card loading-card">
+      <view class="match-tip">正在根据需求、距离、服务能力和信用进行匹配…</view>
+    </view>
+
+    <view wx:elif="{{errorText}}" class="card warning">
+      <view class="warning-title">匹配暂时失败</view>
+      <view class="warning-text">{{errorText}}</view>
+    </view>
+
+    <view wx:elif="{{!providers.length}}" class="card">
+      <view class="match-tip">暂时没有找到合适的服务者。</view>
+    </view>
+
+    <block wx:for="{{providers}}" wx:key="id">
+      <view class="card provider">
+        <view class="provider-top">
+          <view>
+            <view class="provider-name">{{item.name}}</view>
+            <view class="provider-meta">距你 {{item.distance || "附近"}} · {{item.completedOrders || item.orders || 0}} 单完成</view>
+          </view>
+          <view class="credit">{{item.credit}}分</view>
+        </view>
+        <view class="provider-skill">{{item.skillsText || item.skill || item.skills}}</view>
+        <view class="provider-price">参考 ¥{{item.priceFrom || item.price || 0}} 起</view>
+      </view>
+    </block>
+
+    <button wx:if="{{providers.length && !loading}}" class="primary-btn" bindtap="createOrder">选择推荐服务</button>
+  </block>
 </view>
