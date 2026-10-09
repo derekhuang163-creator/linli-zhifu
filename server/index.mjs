@@ -201,7 +201,9 @@ app.post("/api/orders", (req, res) => {
   if (rawText.length > 500) return res.status(400).json({ error: "需求描述不能超过500字" });
   const provider = getProvider(providerId);
   if (!provider || provider.status !== "approved") return res.status(400).json({ error: "服务者不可用" });
-  if (request.needsHumanReview || ["L3", "L4"].includes(request.riskLevel)) {
+  // Re-evaluate risk on the server. Never trust client-supplied risk fields alone.
+  const verifiedRequest = applyRiskRules(rawText.trim(), request);
+  if (verifiedRequest.needsHumanReview || ["L3", "L4"].includes(verifiedRequest.riskLevel)) {
     return res.status(400).json({ error: "该需求需要人工确认，不能自动下单" });
   }
   const safeAmount = Number(amount);
@@ -209,7 +211,7 @@ app.post("/api/orders", (req, res) => {
     return res.status(400).json({ error: "订单金额不合法" });
   }
   try {
-    const created = createOrder({ userId, providerId, rawText: rawText.trim(), request, amount: safeAmount });
+    const created = createOrder({ userId, providerId, rawText: rawText.trim(), request: verifiedRequest, amount: safeAmount });
     const order = transitionOrder(created.id, "WAITING_PROVIDER", { actorType: "platform", actorId: "system" });
     return res.status(201).json({ ok: true, order: { ...order, provider }, history: getOrderHistory(order.id) });
   } catch (error) {
