@@ -56,3 +56,12 @@ test("test data is isolated in a temporary directory", () => {
   assert.ok(fs.existsSync(path.join(tempDir, "linli.json")));
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
+test("order creation rejects unknown user references", () => {
+  assert.throws(() => store.createOrder({
+    userId: "missing-user",
+    providerId: "p1",
+    rawText: "测试需求",
+    request: { category: "家庭清洁", riskLevel: "L1", needsHumanReview: false },
+    amount: 60
+  }), /用户不存在/);
+});
