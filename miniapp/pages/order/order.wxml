@@ -47,7 +47,9 @@
       当前为 MVP 演示订单。下一步将接入真实支付、服务时间、定位、履约状态和售后。
     </view>
 
-    <button wx:if="{{order.status !== 'USER_ACCEPTED' && order.status !== 'CANCELLED' && order.status !== 'DISPUTED' && order.status !== 'NO_ORDER'}}"
+    <view wx:if="{{order.status === 'WAITING_PROVIDER'}}" class="card notice">订单正在等待服务者接单。请到“服务者工作台”接受订单，再返回这里查看状态。</view>
+
+    <button wx:if="{{order.status !== 'WAITING_PROVIDER' && order.status !== 'USER_ACCEPTED' && order.status !== 'CANCELLED' && order.status !== 'DISPUTED' && order.status !== 'NO_ORDER'}}"
       class="primary-btn"
       bindtap="nextStatus"
       disabled="{{loading}}">
