@@ -286,6 +286,16 @@ Page({
     });
   },
 
+  openProviderWorkspace() {
+    wx.navigateTo({
+      url: "/pages/provider/provider",
+      fail: (err) => {
+        console.error("open provider workspace failed:", err);
+        wx.showToast({ title: "服务者工作台打开失败", icon: "none" });
+      }
+    });
+  },
+
   backHome() {
     wx.reLaunch({
       url: "/pages/index/index"
