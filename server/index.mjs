@@ -208,9 +208,13 @@ app.post("/api/orders", (req, res) => {
   if (!Number.isFinite(safeAmount) || safeAmount < 0 || safeAmount > 100000) {
     return res.status(400).json({ error: "订单金额不合法" });
   }
-  const created = createOrder({ userId, providerId, rawText: rawText.trim(), request, amount: safeAmount });
-  const order = transitionOrder(created.id, "WAITING_PROVIDER", { actorType: "platform", actorId: "system" });
-  res.status(201).json({ ok: true, order: { ...order, provider }, history: getOrderHistory(order.id) });
+  try {
+    const created = createOrder({ userId, providerId, rawText: rawText.trim(), request, amount: safeAmount });
+    const order = transitionOrder(created.id, "WAITING_PROVIDER", { actorType: "platform", actorId: "system" });
+    return res.status(201).json({ ok: true, order: { ...order, provider }, history: getOrderHistory(order.id) });
+  } catch (error) {
+    return res.status(400).json({ error: error.message || "订单创建失败" });
+  }
 });
 
 app.get("/api/orders/:id", (req, res) => {
