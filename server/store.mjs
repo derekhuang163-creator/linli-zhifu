@@ -30,7 +30,11 @@ export function getProvider(idValue){return findById(load().providers,idValue);}
 export function listProviders(){return load().providers.filter(p=>p.status==="approved");}
 export function createOrder(input){
   const db=load();
-  const order={id:id("LZ"),userId:input.userId,providerId:input.providerId,rawText:input.rawText,request:input.request,amount:Number(input.amount||0),status:"PENDING_CONFIRMATION",createdAt:now(),updatedAt:now()};
+  if (!findById(db.users, input.userId)) throw new Error("用户不存在");
+  const provider = findById(db.providers, input.providerId);
+  if (!provider || provider.status !== "approved") throw new Error("服务者不可用");
+  const createdAt = now();
+  const order={id:id("LZ"),userId:input.userId,providerId:input.providerId,rawText:input.rawText,request:input.request,amount:Number(input.amount||0),status:"PENDING_CONFIRMATION",createdAt,updatedAt:createdAt};
   db.orders.push(order);
   db.orderStatusHistory.push({id:id("osh"),orderId:order.id,from:null,to:order.status,actorType:"user",actorId:order.userId,createdAt:order.createdAt});
   save(db);return order;
