@@ -65,3 +65,14 @@ test("order creation rejects unknown user references", () => {
     amount: 60
   }), /用户不存在/);
 });
+
+test("production provider listing never exposes seeded demo providers", () => {
+  const previous = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+  try {
+    assert.deepEqual(store.listProviders(), []);
+  } finally {
+    if (previous === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previous;
+  }
+});
