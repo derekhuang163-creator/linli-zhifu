@@ -135,13 +135,21 @@ Page({
       const now = new Date().toISOString();
       const order = {
         id: "LZ" + Date.now().toString().slice(-8),
-        status: "PENDING_CONFIRMATION",
-        statusText: "待确认",
+        status: "WAITING_PROVIDER",
+        statusText: "等待服务者接单",
         provider: provider,
         request: this.data.draft,
         amount: Number(provider.priceFrom || provider.price || 0),
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        history: [{
+          id: "demo-created-" + Date.now(),
+          from: "",
+          to: "WAITING_PROVIDER",
+          actorType: "platform",
+          actorId: "demo",
+          createdAt: now
+        }]
       };
 
       app.globalData.currentOrder = order;
