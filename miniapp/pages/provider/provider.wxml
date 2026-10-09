@@ -16,7 +16,11 @@
     <view class="status">{{item.statusText || item.status}}</view>
     <view wx:if="{{item.createdAtText}}" class="order-time">创建时间：{{item.createdAtText}}</view>
     <button wx:if="{{item.status === 'WAITING_PROVIDER'}}" size="mini" type="primary" bindtap="accept" data-id="{{item.id}}" disabled="{{loading}}">接受订单</button>
-    <view wx:elif="{{item.status === 'ACCEPTED'}}" class="accepted-tip">已接单。用户端订单状态已更新。</view>
+    <button wx:elif="{{item.status === 'ACCEPTED'}}" size="mini" type="primary" bindtap="advanceStatus" data-id="{{item.id}}" data-status="ARRIVED" disabled="{{loading}}">确认已到达</button>
+    <button wx:elif="{{item.status === 'ARRIVED'}}" size="mini" type="primary" bindtap="advanceStatus" data-id="{{item.id}}" data-status="IN_SERVICE" disabled="{{loading}}">开始服务</button>
+    <button wx:elif="{{item.status === 'IN_SERVICE'}}" size="mini" type="primary" bindtap="advanceStatus" data-id="{{item.id}}" data-status="COMPLETED" disabled="{{loading}}">完成服务</button>
+    <view wx:elif="{{item.status === 'COMPLETED'}}" class="accepted-tip">服务已完成，等待用户确认。</view>
+    <view wx:elif="{{item.status === 'USER_ACCEPTED'}}" class="accepted-tip">用户已验收，订单完成。</view>
   </view>
   <view wx:if="{{errorText}}" class="error-text">{{errorText}}</view>
   <button class="primary-btn" bindtap="demoRefresh" loading="{{loading}}" disabled="{{loading}}">刷新订单</button>
