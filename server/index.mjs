@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "node:path";
+import { timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import OpenAI from "openai";
 import {
@@ -30,7 +31,26 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(cors());
 app.use(express.json({ limit: "64kb" }));
-app.use("/admin", express.static(path.join(currentDir, "admin")));
+app.use("/admin", express.static(path.join(currentDir, "admin"), { setHeaders(res) { res.setHeader("Cache-Control", "no-store"); } }));
+function adminAuth(req, res, next) {
+  res.setHeader("Cache-Control", "no-store");
+  const configured = process.env.ADMIN_API_TOKEN;
+  if (!configured) {
+    if (process.env.NODE_ENV === "production") return res.status(503).json({ error: "管理后台尚未配置 ADMIN_API_TOKEN" });
+    return next();
+  }
+  const header = req.get("authorization") || "";
+  const suppliedBuffer = Buffer.from(header.startsWith("Bearer ") ? header.slice(7) : "");
+  const expectedBuffer = Buffer.from(configured);
+  const valid = suppliedBuffer.length === expectedBuffer.length && timingSafeEqual(suppliedBuffer, expectedBuffer);
+  if (!valid) return res.status(401).json({ error: "管理员认证失败" });
+  next();
+}
+app.use("/api/admin", adminAuth);
+function developmentOnly(req, res, next) {
+  if (process.env.NODE_ENV === "production") return res.status(403).json({ error: "此开发接口在生产环境已禁用，需先接入正式身份认证" });
+  next();
+}
 
 const schema = {
   type: "object",
@@ -68,7 +88,7 @@ app.get("/health", (_req, res) => {
 });
 
 // Development-only identity endpoint. Replace with WeChat login before production.
-app.post("/api/auth/dev-login", (req, res) => {
+app.post("/api/auth/dev-login", developmentOnly, (req, res) => {
   const name = String(req.body?.name || "体验用户").slice(0, 40);
   const phone = String(req.body?.phone || "").slice(0, 30);
   res.json({ ok: true, user: createUser({ name, phone }) });
@@ -105,7 +125,7 @@ app.get("/api/providers/:id/orders", (req, res) => {
   res.json({ ok: true, provider, orders });
 });
 
-app.post("/api/providers/:id/orders/:orderId/accept", (req, res) => {
+app.post("/api/providers/:id/orders/:orderId/accept", developmentOnly, (req, res) => {
   const provider = getProvider(req.params.id);
   const order = getOrder(req.params.orderId);
   if (!provider || !order) return res.status(404).json({ error: "服务者或订单不存在" });
@@ -126,7 +146,7 @@ app.post("/api/providers/:id/orders/:orderId/accept", (req, res) => {
   }
 });
 
-app.post("/api/providers/:id/orders/:orderId/status", (req, res) => {
+app.post("/api/providers/:id/orders/:orderId/status", developmentOnly, (req, res) => {
   const provider = getProvider(req.params.id);
   const order = getOrder(req.params.orderId);
   const nextStatus = String(req.body?.status || "");
@@ -193,7 +213,7 @@ app.post("/api/match", (req, res) => {
   res.json({ ok: true, humanReviewRequired: false, providers: providers.length ? providers : listProviders() });
 });
 
-app.post("/api/orders", (req, res) => {
+app.post("/api/orders", developmentOnly, (req, res) => {
   const { userId, providerId, rawText, request, amount } = req.body || {};
   if (!userId || !providerId || typeof rawText !== "string" || !rawText.trim() || !request) {
     return res.status(400).json({ error: "缺少订单必要字段" });
@@ -230,7 +250,7 @@ app.get("/api/orders/:id", (req, res) => {
 });
 
 // This generic endpoint is for the development demo only. Production must enforce user/provider sessions.
-app.post("/api/orders/:id/status", (req, res) => {
+app.post("/api/orders/:id/status", developmentOnly, (req, res) => {
   try {
     const order = getOrder(req.params.id);
     if (!order) return res.status(404).json({ error: "订单不存在" });
