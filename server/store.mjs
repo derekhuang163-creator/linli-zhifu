@@ -27,7 +27,7 @@ export function findById(list,value){return list.find(x=>x.id===value)||null;}
 export function upsert(list,item){const i=list.findIndex(x=>x.id===item.id);if(i>=0)list[i]=item;else list.push(item);return item;}
 export function createUser({name="体验用户",phone=""}={}){const db=load();const user={id:id("u"),name,phone,createdAt:now()};db.users.push(user);save(db);return user;}
 export function getProvider(idValue){return findById(load().providers,idValue);}
-export function listProviders(){return load().providers.filter(p=>p.status==="approved");}
+export function listProviders(){return load().providers.filter(p=>p.status==="approved" && !(process.env.NODE_ENV === "production" && ["p1","p2","p3"].includes(p.id)));}
 export function createOrder(input){
   const db=load();
   if (!findById(db.users, input.userId)) throw new Error("用户不存在");
