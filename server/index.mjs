@@ -78,6 +78,18 @@ const schema = {
   ]
 };
 
+app.get("/ready", (_req, res) => {
+  const blockers = [];
+  if (process.env.NODE_ENV !== "production") blockers.push("NODE_ENV 未设置为 production");
+  if (!process.env.ADMIN_API_TOKEN || process.env.ADMIN_API_TOKEN.length < 32) blockers.push("ADMIN_API_TOKEN 未配置或长度不足 32 字符");
+  blockers.push("正式微信用户登录和服务端会话认证尚未实现");
+  blockers.push("服务者身份核验与每笔订单的授权校验尚未实现");
+  blockers.push("正式数据库、备份与恢复演练尚未完成");
+  blockers.push("支付、退款与结算流程尚未接入");
+  blockers.push("微信主体、服务类目和隐私合规尚未核验");
+  res.status(blockers.length ? 503 : 200).json({ ready: blockers.length === 0, blockers, time: new Date().toISOString() });
+});
+
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -94,7 +106,7 @@ app.post("/api/auth/dev-login", developmentOnly, (req, res) => {
   res.json({ ok: true, user: createUser({ name, phone }) });
 });
 
-app.post("/api/providers/register", (req, res) => {
+app.post("/api/providers/register", developmentOnly, (req, res) => {
   const name = String(req.body?.name || "").trim().slice(0, 40);
   if (!name) return res.status(400).json({ error: "服务者姓名不能为空" });
   const provider = registerProvider({
@@ -115,7 +127,7 @@ app.get("/api/providers", (req, res) => {
   res.json({ ok: true, providers: providers.length ? providers : listProviders() });
 });
 
-app.get("/api/providers/:id/orders", (req, res) => {
+app.get("/api/providers/:id/orders", developmentOnly, (req, res) => {
   const provider = getProvider(req.params.id);
   if (!provider) return res.status(404).json({ error: "服务者不存在" });
   const db = readDb();
@@ -183,7 +195,7 @@ app.post("/api/parse-request", async (req, res) => {
       parsed = fallbackParse(text);
     } else {
       const response = await openai.responses.create({
-        model: process.env.OPENAI_MODEL || "gpt-6-luna",
+        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
         store: false,
         instructions: "你是邻里智服的需求理解助手。只做需求结构化，不做最终安全决策。L1普通低风险；L2老人、宠物或较复杂上门服务；L3需要专业资质；L4禁止或必须人工审核。未知信息填写待确认或0，不要编造。",
         input: text,
@@ -239,7 +251,7 @@ app.post("/api/orders", developmentOnly, (req, res) => {
   }
 });
 
-app.get("/api/orders/:id", (req, res) => {
+app.get("/api/orders/:id", developmentOnly, (req, res) => {
   const order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "订单不存在" });
   res.json({
