@@ -50,11 +50,11 @@
     <view wx:if="{{order.status === 'WAITING_PROVIDER'}}" class="card notice">订单正在等待服务者接单。点击下方按钮模拟服务者处理订单，接单后返回此页查看同步结果。</view>
     <button wx:if="{{order.status === 'WAITING_PROVIDER'}}" class="primary-btn" bindtap="openProviderWorkspace">打开服务者工作台（演示）</button>
 
-    <button wx:if="{{order.status !== 'WAITING_PROVIDER' && order.status !== 'USER_ACCEPTED' && order.status !== 'CANCELLED' && order.status !== 'DISPUTED' && order.status !== 'NO_ORDER'}}"
+    <button wx:if="{{order.status === 'COMPLETED'}}"
       class="primary-btn"
       bindtap="nextStatus"
       disabled="{{loading}}">
-      {{loading ? "处理中…" : "推进下一步状态（测试）"}}
+      {{loading ? "处理中…" : "确认服务已完成"}}
     </button>
 
     <button class="primary-btn" bindtap="backHome">返回首页</button>
