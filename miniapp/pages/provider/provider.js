@@ -140,6 +140,61 @@ Page({
     });
   },
 
+  advanceStatus(e) {
+    const orderId = e.currentTarget.dataset.id;
+    const nextStatus = e.currentTarget.dataset.status;
+    const order = this.data.orders.find(item => item.id === orderId);
+    if (!order || !nextStatus || this.data.loading) return;
+
+    if (!API_BASE_URL) {
+      const app = getApp();
+      const current = app.globalData.currentOrder;
+      if (!current || current.id !== orderId || current.status !== order.status) {
+        wx.showToast({ title: "订单状态已变化，请刷新", icon: "none" });
+        this.load();
+        return;
+      }
+      const now = new Date().toISOString();
+      const history = Array.isArray(current.history) ? current.history.slice() : [];
+      history.push({
+        id: "demo-" + Date.now(),
+        from: current.status,
+        to: nextStatus,
+        actorType: "provider",
+        actorId: this.data.provider.id,
+        createdAt: now
+      });
+      app.globalData.currentOrder = { ...current, status: nextStatus, updatedAt: now, history };
+      wx.showToast({ title: statusText(nextStatus), icon: "success" });
+      this.load();
+      return;
+    }
+
+    this.setData({ loading: true });
+    wx.request({
+      url: API_BASE_URL + "/api/providers/" + encodeURIComponent(this.data.provider.id) +
+        "/orders/" + encodeURIComponent(orderId) + "/status",
+      method: "POST",
+      timeout: 10000,
+      header: { "content-type": "application/json" },
+      data: { status: nextStatus },
+      success: (res) => {
+        if (res.statusCode === 200 && res.data && res.data.order) {
+          getApp().globalData.currentOrder = { ...res.data.order, history: res.data.history || [] };
+          wx.showToast({ title: statusText(nextStatus), icon: "success" });
+          this.load();
+        } else {
+          wx.showToast({ title: (res.data && res.data.error) || "状态更新失败", icon: "none" });
+        }
+      },
+      fail: (err) => {
+        console.error("provider status update failed:", err);
+        wx.showToast({ title: "网络连接失败", icon: "none" });
+      },
+      complete: () => this.setData({ loading: false })
+    });
+  },
+
   demoRefresh() {
     this.load();
   }
