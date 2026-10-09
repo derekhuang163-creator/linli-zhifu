@@ -1,1 +1,14 @@
-{"description":"邻里智服微信小程序","setting":{"urlCheck":false,"es6":true,"enhance":true,"postcss":true,"minified":false},"compileType":"miniprogram","libVersion":"3.8.0","appid":"touristappid","projectname":"linli-zhifu"}
+{
+  "description": "邻里智服微信小程序",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.8.0",
+  "appid": "wxb8633d7eb7cfe091",
+  "projectname": "linli-zhifu"
+}
