@@ -1,5 +1,9 @@
+function getAdminToken() { return sessionStorage.getItem("linliAdminToken") || ""; }
 async function api(url) {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  const headers = { Accept: "application/json" };
+  const token = getAdminToken();
+  if (token) headers.Authorization = "Bearer " + token;
+  const response = await fetch(url, { headers, cache: "no-store" });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "请求失败：" + response.status);
   return data;
@@ -41,11 +45,26 @@ async function loadAll() {
       (orderData.orders || []).map(item =>
         textNode("div", (item.id || "无订单号") + " · " +
           (item.status || "未知状态") + " · " + (item.rawText || "无需求描述"), "item")));
-    notice.textContent = "开发版：暂未接入管理员登录，请勿直接暴露到公网。数据已更新。";
+    notice.textContent = "后台数据已更新。";
   } catch (error) {
     console.error("admin dashboard load failed:", error);
-    notice.textContent = "后台数据加载失败，请检查后端服务并刷新。";
+    notice.textContent = error.message || "后台数据加载失败，请检查后端服务并刷新。";
   }
 }
+document.getElementById("adminToken").value = getAdminToken();
+document.getElementById("saveToken").addEventListener("click", () => {
+  const token = document.getElementById("adminToken").value.trim();
+  if (!token) { document.querySelector(".notice").textContent = "请先输入管理员 Token。"; return; }
+  sessionStorage.setItem("linliAdminToken", token);
+  loadAll();
+});
+document.getElementById("clearToken").addEventListener("click", () => {
+  sessionStorage.removeItem("linliAdminToken");
+  document.getElementById("adminToken").value = "";
+  document.querySelector(".notice").textContent = "已清除当前会话 Token。";
+  document.getElementById("stats").replaceChildren();
+  document.getElementById("providers").replaceChildren();
+  document.getElementById("orders").replaceChildren();
+});
 window.loadAll = loadAll;
-loadAll();
+if (getAdminToken()) loadAll();
