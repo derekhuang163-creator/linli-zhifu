@@ -91,9 +91,24 @@ Page({
   },
 
   onShow() {
-    if (!this.data.pageReady) {
+    // Refresh from shared app state when returning from the provider workspace.
+    if (this.data.pageReady) {
+      this.syncFromAppState();
+    } else {
       this.loadCurrentOrder();
     }
+  },
+
+  syncFromAppState() {
+    const savedOrder = getApp().globalData.currentOrder;
+    if (!savedOrder) return;
+    const order = normalizeOrder(savedOrder);
+    this.setData({
+      order,
+      history: normalizeHistory(savedOrder.history || this.data.history),
+      errorText: ""
+    });
+    if (API_BASE_URL && order.id) this.refresh(order.id);
   },
 
   loadCurrentOrder() {
@@ -131,7 +146,7 @@ Page({
       order,
       pageReady: true,
       errorText: "",
-      history: []
+      history: normalizeHistory(savedOrder.history || [])
     });
 
     if (API_BASE_URL && order.id) {
@@ -149,7 +164,7 @@ Page({
           const order = normalizeOrder(res.data.order);
           const history = normalizeHistory(res.data.history);
 
-          getApp().globalData.currentOrder = res.data.order;
+          getApp().globalData.currentOrder = { ...res.data.order, history };
 
           this.setData({
             order,
@@ -178,7 +193,6 @@ Page({
 
     const nextMap = {
       PENDING_CONFIRMATION: "WAITING_PROVIDER",
-      WAITING_PROVIDER: "ACCEPTED",
       ACCEPTED: "ARRIVED",
       ARRIVED: "IN_SERVICE",
       IN_SERVICE: "COMPLETED",
@@ -204,16 +218,15 @@ Page({
         updatedAt: now
       };
 
-      const history = this.data.history.concat([{
+      const history = normalizeHistory((Array.isArray(current.history) ? current.history : this.data.history).concat([{
         id: "demo-" + Date.now(),
         from: currentStatus,
         to: next,
-        statusText: getStatusText(next),
         actorType: "demo",
         actorId: "demo-user",
-        createdAt: now,
-        timeText: formatTime(now)
-      }]);
+        createdAt: now
+      }]));
+      order.history = history;
 
       getApp().globalData.currentOrder = order;
 
@@ -245,7 +258,7 @@ Page({
           const order = normalizeOrder(res.data.order);
           const history = normalizeHistory(res.data.history);
 
-          getApp().globalData.currentOrder = res.data.order;
+          getApp().globalData.currentOrder = { ...res.data.order, history };
 
           this.setData({
             order,
