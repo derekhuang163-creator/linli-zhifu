@@ -1,1 +1,9 @@
-.label{color:#6b7280;font-size:24rpx}.name{font-size:38rpx;font-weight:700;margin-top:10rpx}.meta{color:#6b7280;font-size:24rpx;margin-top:10rpx}.order-id{font-size:22rpx;color:#9ca3af}.request{font-size:27rpx;line-height:1.5;margin:12rpx 0}.status{font-size:25rpx;font-weight:700;margin-bottom:14rpx}
+.label{color:#6b7280;font-size:24rpx}
+.name{font-size:38rpx;font-weight:700;margin-top:10rpx}
+.meta{color:#6b7280;font-size:24rpx;margin-top:10rpx}
+.order-id{font-size:22rpx;color:#9ca3af}
+.request{font-size:27rpx;line-height:1.5;margin:12rpx 0}
+.status{font-size:25rpx;font-weight:700;margin-bottom:10rpx}
+.order-time{font-size:22rpx;color:#9ca3af;margin-bottom:16rpx}
+.accepted-tip{font-size:24rpx;color:#15803d;padding:8rpx 0}
+.error-text{color:#b91c1c;font-size:24rpx;padding:12rpx 4rpx}
