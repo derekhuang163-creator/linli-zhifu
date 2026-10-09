@@ -11,7 +11,7 @@ const seedProviders=[
   {id:"p3",name:"陈师傅",phone:"13800000003",skills:["搬运/安装","家具安装"],serviceRadiusKm:6,credit:958,completedOrders:188,status:"approved",priceFrom:70}
 ];
 
-const empty=()=>({users:[],providers:seedProviders,orders:[],orderStatusHistory:[],creditEvents:[]});
+const empty=()=>({users:[],providers:process.env.NODE_ENV === "production" ? [] : seedProviders,orders:[],orderStatusHistory:[],creditEvents:[]});
 
 function ensure(){
   fs.mkdirSync(dataDir,{recursive:true});
