@@ -193,9 +193,6 @@ Page({
 
     const nextMap = {
       PENDING_CONFIRMATION: "WAITING_PROVIDER",
-      ACCEPTED: "ARRIVED",
-      ARRIVED: "IN_SERVICE",
-      IN_SERVICE: "COMPLETED",
       COMPLETED: "USER_ACCEPTED"
     };
 
