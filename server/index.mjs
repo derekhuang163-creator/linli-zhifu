@@ -52,6 +52,12 @@ function developmentOnly(req, res, next) {
   next();
 }
 
+function toPublicProvider(provider) {
+  if (!provider) return provider;
+  const { phone, ...publicFields } = provider;
+  return publicFields;
+}
+
 const schema = {
   type: "object",
   additionalProperties: false,
@@ -124,7 +130,7 @@ app.get("/api/providers", (req, res) => {
   const providers = listProviders().filter(provider =>
     !category || provider.skills.some(skill => category.includes(skill) || skill.includes(category))
   );
-  res.json({ ok: true, providers: providers.length ? providers : listProviders() });
+  res.json({ ok: true, providers: (providers.length ? providers : listProviders()).map(toPublicProvider) });
 });
 
 app.get("/api/providers/:id/orders", developmentOnly, (req, res) => {
@@ -222,7 +228,7 @@ app.post("/api/match", (req, res) => {
   const providers = listProviders().filter(provider =>
     provider.skills.some(skill => category.includes(skill) || skill.includes(category))
   );
-  res.json({ ok: true, humanReviewRequired: false, providers: providers.length ? providers : listProviders() });
+  res.json({ ok: true, humanReviewRequired: false, providers: (providers.length ? providers : listProviders()).map(toPublicProvider) });
 });
 
 app.post("/api/orders", developmentOnly, (req, res) => {
